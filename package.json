@@ -3,17 +3,22 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "node ./app/handler.js & next dev --turbopack -p 6226",
+    "dev:tsc": "tsc --watch ./app/handler.ts",
+    "dev:node": "node --watch ./app/handler.js",
+    "dev:next": "next dev --turbopack -p 6226",
+    "dev": "npx concurrently --kill-others -n \"TSC,NODE,NEXT\" -c \"blue,green,magenta\" \"npm run dev:tsc\" \"npm run dev:node\" \"npm run dev:next\"",
     "build": "npx tsc ./app/handler.ts"
   },
   "dependencies": {
-    "next": "15.5.4",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
+    "framer-motion": "^12.33.0",
+    "motion": "^12.33.0",
+    "next": "^16",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
     "uuid": "^13.0.0"
   },
   "devDependencies": {
-    "@types/node": "^20",
+    "@types/node": "^25",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "typescript": "^5"

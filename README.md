@@ -1,6 +1,7 @@
 # ルビ振り rubifuri
 
-Copyright (C) 2025 Peter Go.  
+Version 0.2  
+Copyright (C) 2025 cocoazawa.  
 
 This project is a web interface for the ルビ振り API provided by the Yahoo!デベロッパーネットワーク (Yahoo! JAPAN's Developer Network).  
 
@@ -8,12 +9,11 @@ This project is a web interface for the ルビ振り API provided by the Yahoo!�
 
 1. Obtain a developer key from Yahoo! for their Developer Network (only for people with a Japanese Yahoo! account)
 2. Install all `npm` dependencies using `npm i`
-3. Run `npx tsc ./app/handler.ts && node ./app/handler.js` to start the local server component of the interface
-4. Run `npm run dev` to run the actual front-end interface
+3. Run `npm run dev` to start the local server component of the interface and the front-end (starting from v0.2, the commands are combined)
 
 ## Notice of Non-Affiliation and Disclaimer
 
-We are not affiliated, associated, authorized, endorsed by, or in any way officially connected with Google LLC, or any of its subsidiaries or its affiliates. The official Google Sites website can be found at [https://sites.google.com/].
+We are not affiliated, associated, authorized, endorsed by, or in any way officially connected with the LINEヤフー株式会社 (LY Corporation), or any of its subsidiaries or its affiliates. The official Yahoo!デベロッパーネットワーク website can be found at [https://developer.yahoo.co.jp/].
 
-The names Google Sites and Google as well as related names, marks, emblems and images are registered trademarks of their respective owners.
+The names Yahoo!デベロッパーネットワーク and Yahoo! as well as related names, marks, emblems and images are registered trademarks of their respective owners.
 
