@@ -1,3 +1,7 @@
+// page.tsx
+//
+// Copyright (C) 2026 cocoazawa
+
 "use client"
 
 import { useState } from "react";

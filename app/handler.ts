@@ -1,39 +1,13 @@
 // handler.ts
+//
+// Copyright (C) 2026 cocoazawa
 
-
-
-
-// let totalLength = response["result"]["word"].length;
-
-// let furiganaExport = [];
-// let furiganaLookupIndex = 0;
-
-// for (let index = 0; index < totalLength; index++) {
-//     const word = response["result"]["word"].at(index);
-
-//     if (word["furigana"] === undefined) {
-//         try {
-//             furiganaExport[furiganaLookupIndex - 1] = furiganaExport[furiganaLookupIndex - 1] + word[furiganaLookupIndex]["surface"];
-//         } catch {
-//             continue;
-//         }
-//     } else {
-//         furiganaExport[furiganaLookupIndex] = word["furigana"];
-//         furiganaLookupIndex += 1;
-//     }
-// }
-
-// console.log(totalLength);
-// console.log(furiganaExport.length);
-// furiganaExport.forEach((value) => {
-//     console.log(value);
-// })
 
 import { createServer } from "http";
 
 
 // yanked from https://developer.yahoo.co.jp/webapi/jlp/furigana/v2/furigana.html#:~:text=%E3%83%AC%E3%82%B9%E3%83%9D%E3%83%B3%E3%82%B9%E3%83%95%E3%82%A3%E3%83%BC%E3%83%AB%E3%83%89
-// the URL looks so long due to Japanese encodeURIComponent. It's just the documentation for the API.
+// the URL looks so long due to Japanese encodeURIComponent. It's just the documentation for the Yahoo API.
 export interface YahooResponse {
     id: string | number,
     jsonrpc: "2.0",

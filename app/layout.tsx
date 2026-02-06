@@ -1,3 +1,7 @@
+// layout.tsx
+//
+// Copyright (C) 2026 cocoazawa
+
 "use client"
 
 import "./globals.css";
