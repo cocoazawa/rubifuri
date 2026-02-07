@@ -5,6 +5,9 @@
 
 import { createServer } from "http";
 
+const HostPortNumber: number = 6226;
+const HandlerPortNumber: number = 62263;
+
 
 // yanked from https://developer.yahoo.co.jp/webapi/jlp/furigana/v2/furigana.html#:~:text=%E3%83%AC%E3%82%B9%E3%83%9D%E3%83%B3%E3%82%B9%E3%83%95%E3%82%A3%E3%83%BC%E3%83%AB%E3%83%89
 // the URL looks so long due to Japanese encodeURIComponent. It's just the documentation for the Yahoo API.
@@ -153,13 +156,14 @@ const startingPoint = createServer((request, response) => {
             actual: yahooResponse
         };
 
-        response.appendHeader("Access-Control-Allow-Origin", "http://localhost:6226");
+        response.appendHeader("Access-Control-Allow-Origin", "http://localhost:" + HostPortNumber);
         response.end(JSON.stringify(respondingTicket));
     });
+    
     request.on('error', err => {
         errorify();
         return;
     });
 })
 
-startingPoint.listen(62263);
+startingPoint.listen(HandlerPortNumber);
