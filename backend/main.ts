@@ -1,4 +1,4 @@
-// handler.ts
+// main.ts
 //
 // Copyright (C) 2026 cocoazawa
 
