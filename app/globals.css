@@ -48,6 +48,10 @@ h1, h2, h3 {
     gap: 4px;
 }
 
+.logo:hover {
+    cursor: pointer;
+}
+
 header {
     position: fixed;
     top: 8px;

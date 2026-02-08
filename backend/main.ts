@@ -158,6 +158,7 @@ const endpoint = createServer((request, response) => {
                         .then(furiganaResponse => {
                             respondingTicket.output = furiganaResponse;
                             response.appendHeader("Access-Control-Allow-Origin", "http://localhost:" + HostPortNumber);
+                            response.appendHeader("Access-Control-Allow-Credentials", "true");
                             response.statusCode = 200;
                             response.end(JSON.stringify(respondingTicket));
                         })

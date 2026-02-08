@@ -4,7 +4,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { isLocalStorageAvailable, RubifuriConfiguration } from "./definitions";
-import { CheckCheck, CircleSlash, Server, ServerCrash, Settings } from "lucide-react";
+import { Ban, CheckCheck, CircleSlash, Server, ServerCrash, Settings } from "lucide-react";
 import { RubifuriAuthentication_CheckResponseObject, RubifuriServerRequest, RubifuriServerResponse } from "@/backend/definitions";
 
 async function makeConfigurationChange(attribute: "yahoo_apiKey" | "unsplash_apiKey" | "name" | "language", value: string | "en" | "jp"): Promise<void> {
@@ -237,8 +237,10 @@ export function RubifuriSettingsPanel() {
                     }
                     setConfigurationSaveStatus(true);
                 }} type="text" placeholder="Enter your name..."></input>
-            </>: <>
+            </> : configurationLoaded == false ? <>
                 <h2 style={{marginLeft: "auto", marginRight: "auto", marginTop: "24px"}}><span className="loader" data-type="header" />&nbsp;Checking for your settings...</h2>
+            </> : <>
+                <h2 style={{color: "var(--red)", marginLeft: "auto", marginRight: "auto", marginTop: "24px"}}><Ban />&nbsp;Failed to load settings. Please clear site data and retry.</h2>
             </>}
 
 
