@@ -122,10 +122,6 @@ header .creator div {
     flex-direction: row;
     align-items: center;
 }
-header .creator svg {
-    width: auto !important;
-    height: 22px !important;
-}
 header .creator>p {
     font-size: 10px;
 }
@@ -266,4 +262,10 @@ code {
 
     background: var(--dark-navy);
     color: var(--off-white);
+}
+
+.githubRefer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
 }

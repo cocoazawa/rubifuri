@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { RubifuriConversion_ResponseObject, RubifuriServerRequest, RubifuriServerResponse } from "../backend/definitions.ts";
 import { Ban, BookMarked, Milestone, Settings } from "lucide-react";
 import { RubifuriSettingsPanel } from "./settings.tsx";
+import { RubifuriInformationPanel } from "./information.tsx";
 
 
 async function createRequest(requestingSentence: string): Promise<RubifuriServerResponse> {
@@ -32,7 +33,7 @@ async function createRequest(requestingSentence: string): Promise<RubifuriServer
 }
 
 export default function Home() {
-    let [interfaceState, setInterfaceState] = useState<"processing" | "enter" | "settings" | "result" | "error" | "welcome">("processing");
+    let [interfaceState, setInterfaceState] = useState<"processing" | "information" | "enter" | "settings" | "result" | "error" | "welcome">("processing");
 
     let [output, setOutput] = useState<string>("");
 
@@ -60,7 +61,7 @@ export default function Home() {
                     <h1>rubifuri<sup style={{fontSize: "14px"}}>v0.2</sup></h1>
                 </a>
                 <div>
-                    <button onClick={(event) => {setInterfaceState("settings")}} className="credit"><BookMarked height={14} strokeWidth={2.5} /> Information</button>
+                    <button onClick={(event) => {setInterfaceState("information")}} className="credit"><BookMarked height={14} strokeWidth={2.5} /> Information</button>
                     <button onClick={(event) => {setInterfaceState("settings")}} className="credit"><Settings height={14} strokeWidth={2.5} /> Settings</button>
                 </div>
             </header>
@@ -93,6 +94,8 @@ export default function Home() {
                     </div>
                 </> : interfaceState == "settings" ? <>
                     <RubifuriSettingsPanel />
+                </> : interfaceState == "information" ? <>
+                    <RubifuriInformationPanel />
                 </> : <>
                     <div className="panel">
                         <h2 style={{color: "var(--red)", marginLeft: "auto", marginRight: "auto", marginTop: "24px"}}><Ban />&nbsp;Failed to process. Please clear site data and retry.</h2>

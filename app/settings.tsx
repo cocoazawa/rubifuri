@@ -2,8 +2,8 @@
 //
 // Copyright (C) 2026 cocoazawa
 
-import { useEffect, useRef, useState } from "react";
-import { isLocalStorageAvailable, RubifuriConfiguration } from "./definitions";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import { isLocalStorageAvailable, pingServer, RubifuriConfiguration } from "./definitions";
 import { Ban, CheckCheck, CircleSlash, Server, ServerCrash, Settings } from "lucide-react";
 import { RubifuriAuthentication_CheckResponseObject, RubifuriServerRequest, RubifuriServerResponse } from "@/backend/definitions";
 
@@ -113,29 +113,6 @@ export function RubifuriSettingsPanel() {
 
     let runOnce = useRef<boolean>(false);
 
-    function pingServer() {
-        let requestingDocument: RubifuriServerRequest = {
-            for: "ping",
-            input: "ping"
-        }
-
-        fetch("http://localhost:62263", {
-            method: "POST",
-            body: JSON.stringify(requestingDocument)
-        })
-        .then((response) => {
-            return(response.json());
-        })
-        .then((secondaryResponse) => {
-            if ((secondaryResponse as RubifuriServerResponse).output[0] === "pong") { setServerState(true); return; }
-            setServerState(false);
-        })
-        .catch((error) => {
-            console.log(error);
-            setServerState(false);
-        });
-    }
-
     function refreshConfigSetState() {
         checkConfigurationValues()
         .then((config) => {
@@ -143,8 +120,8 @@ export function RubifuriSettingsPanel() {
             setConfigurationLoaded(true);
         })
         .catch((error) => {
-            throw error;
             setConfigurationLoaded("error");
+            throw error;
         });
     }
 
@@ -153,9 +130,9 @@ export function RubifuriSettingsPanel() {
         runOnce.current = true;
         console.log("Running...");
         
-        pingServer();
+        pingServer(setServerState);
         setInterval(() => {
-            pingServer();
+            pingServer(setServerState);
         }, 2000);
 
         refreshConfigSetState();
