@@ -6,9 +6,7 @@
 
 import { useEffect, useState } from "react";
 import { RubifuriConversion_ResponseObject, RubifuriServerRequest, RubifuriServerResponse } from "../backend/definitions.ts";
-import { v4 as uuid } from "uuid";
 import { Ban, BookMarked, Milestone, Settings } from "lucide-react";
-import { RubifuriConfiguration } from "./definitions.ts";
 import { RubifuriSettingsPanel } from "./settings.tsx";
 
 

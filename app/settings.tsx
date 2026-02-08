@@ -242,8 +242,6 @@ export function RubifuriSettingsPanel() {
             </> : <>
                 <h2 style={{color: "var(--red)", marginLeft: "auto", marginRight: "auto", marginTop: "24px"}}><Ban />&nbsp;Failed to load settings. Please clear site data and retry.</h2>
             </>}
-
-
         </div>
     </>)
 }
