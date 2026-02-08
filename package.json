@@ -1,25 +1,26 @@
 {
-  "name": "rubifuri",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev:tsc": "tsc --watch ./backend/handler.ts",
-    "dev:node": "node --watch ./backend/handler.js",
-    "dev:next": "next dev --turbopack -p 6226",
-    "dev": "npx concurrently --kill-others -n \"TSC,NODE,NEXT\" -c \"blue,green,magenta\" \"npm run dev:tsc\" \"npm run dev:node\" \"npm run dev:next\"",
-    "build": "npx tsc ./backend/handler.ts"
-  },
-  "dependencies": {
-    "lucide-react": "^0.563.0",
-    "next": "^16",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "uuid": "^13.0.0"
-  },
-  "devDependencies": {
-    "@types/node": "^25",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "typescript": "^5"
-  }
+    "name": "rubifuri",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "dev:tsc": "tsc --watch ./backend/main.ts",
+        "dev:node": "node --watch ./backend/main.js",
+        "dev:next": "next dev --turbopack -p 6226",
+        "view": "npx concurrently --kill-others -n \"TSC,NODE,NEXT\" -c \"blue,green,magenta\" \"npm run dev:tsc\" \"npm run dev:node\" \"npm run dev:next\"",
+        "build": "tsc ./backend/main.ts"
+    },
+    "dependencies": {
+        "lucide-react": "^0.563.0",
+        "next": "^16",
+        "react": "^19.1.0",
+        "react-dom": "^19.1.0",
+        "uuid": "^13.0.0"
+    },
+    "devDependencies": {
+        "@types/node": "^25",
+        "@types/react": "^19",
+        "@types/react-dom": "^19",
+        "cookie": "^1.1.1",
+        "typescript": "^5"
+    }
 }

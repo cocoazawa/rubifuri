@@ -41,5 +41,7 @@ yarn-error.log*
 next-env.d.ts
 
 
-app/handler.js
-handler.js
+backend/main.js
+main.js
+backend/definitions.js
+definitions.js

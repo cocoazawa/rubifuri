@@ -4,56 +4,11 @@
 
 
 import { createServer } from "http";
+import { RubifuriConversion_ResponseObject, YahooResponse, RubifuriServerResponse, RubifuriServerRequest, HostPortNumber, HandlerPortNumber as BackendPortNumber, RubifuriAuthentication_RequestObject } from "./definitions";
+import * as cookieHandler from "cookie";
 
-const HostPortNumber: number = 6226;
-const HandlerPortNumber: number = 62263;
-
-
-// yanked from https://developer.yahoo.co.jp/webapi/jlp/furigana/v2/furigana.html#:~:text=%E3%83%AC%E3%82%B9%E3%83%9D%E3%83%B3%E3%82%B9%E3%83%95%E3%82%A3%E3%83%BC%E3%83%AB%E3%83%89
-// the URL looks so long due to Japanese encodeURIComponent. It's just the documentation for the Yahoo API.
-export interface YahooResponse {
-    id: string | number,
-    jsonrpc: "2.0",
-    result: {
-        word: Array<{
-            surface: string,
-            furigana: string,
-            roman: string,
-            subword: Array<{
-                surface: string,
-                furigana: string,
-                roman: string
-            }>
-        }>
-    }
-}
-
-
-export class RubiFuriServerResponse {
-    state: number = 200;
-    errored?: {
-        state: boolean,
-        message: string
-    };
-    input: string = "";
-    output?: {
-        flattened: string,
-        actual: YahooResponse
-    };
-}
-
-export interface RubiFuriCommunicationDocument {
-    convert: string,
-    id: string,
-    apiKey: string
-}
-interface RubiFuriInterprocessCommunication {
-    state: boolean,
-    message: object
-}
-
-
-async function processInput(requestDocument: RubiFuriCommunicationDocument): Promise<RubiFuriInterprocessCommunication> {
+// Actually make request to Yahoo! Developer Network for Furigana
+async function handleRubifuriRequest(forString: string, withKey: string): Promise<RubifuriConversion_ResponseObject> {
     const requestEndpoint = "https://jlp.yahooapis.jp/FuriganaService/V2/furigana?";
     
     const query = {
@@ -61,83 +16,32 @@ async function processInput(requestDocument: RubiFuriCommunicationDocument): Pro
         "jsonrpc": "2.0",
         "method": "jlp.furiganaservice.furigana",
         "params": {
-            "q": requestDocument.convert,
+            "q": forString,
             "grade": 1,
         }
     }
     
     const headers = new Headers();
     headers.set("Content-Type", "application/json");
-    headers.set("User-Agent", `Yahoo AppID: ${requestDocument.apiKey}`);
+    headers.set("User-Agent", `Yahoo AppID: ${withKey}`);
     
-    let yahooResponse: Response;
-    let yahooResponseParsed: object;
     try {
-        yahooResponse = await fetch(requestEndpoint, {
+        let yahooOfficialResponse: Response = await fetch(requestEndpoint, {
             mode: "no-cors",
             method: "POST",
             body: JSON.stringify(query),
             headers: headers
         });
 
-        yahooResponseParsed = await yahooResponse.json();
-    } catch {
-        return({
-            state: false,
-            message: ["Error while contacting the Yahoo Developer Network."]
-        });
-    }
+        let yahooResponseParsed: YahooResponse = await yahooOfficialResponse.json();
 
-    return({
-        state: true,
-        message: yahooResponseParsed
-    });
-}
-
-const startingPoint = createServer((request, response) => {
-    function errorify() {
-        respondingTicket.state = 500;
-        respondingTicket.errored = {
-            state: true,
-            message: "Internal Error with Request object."
-        };
-        respondingTicket.input = body;
-
-        response.end(JSON.stringify(respondingTicket));
-    }
-
-    let body: string = "";
-    let bodyArray: Uint8Array[] = [];
-
-    let respondingTicket: RubiFuriServerResponse = new RubiFuriServerResponse();
-
-    request.on("data", chunk => {
-        bodyArray.push(chunk);
-    });
-    request.on('end', async () => {
-        body = Buffer.concat(bodyArray).toString();
-
-        let processedInput: RubiFuriInterprocessCommunication;
-        try {
-            processedInput = await processInput(JSON.parse(body) as RubiFuriCommunicationDocument);
-        } catch {
-            errorify();
-            return;
-        }
-
-        if (processedInput.state === false) { errorify(); return; }
-        const yahooResponse: YahooResponse = (processedInput.message as YahooResponse);
-        respondingTicket.state = 200;
-        respondingTicket.input = body;
-
-
-        let totalWordsLength = yahooResponse.result.word.length;
+        let totalWordsLength = yahooResponseParsed.result.word.length;
         let furiganaArray = [];
-
-
+    
+    
         for (let index = 0; index < totalWordsLength; index++) {
-            const word = yahooResponse.result.word[index];
-
+            const word = yahooResponseParsed.result.word[index];
+    
             try {
                 if (word.furigana === undefined) {
                     furiganaArray.push(word.surface);
@@ -146,24 +50,139 @@ const startingPoint = createServer((request, response) => {
             } catch {
                 continue;
             }
-
+    
             furiganaArray.push(word.furigana);
         }
-
+    
         
-        respondingTicket.output = {
+        return({
             flattened: furiganaArray.join(""),
-            actual: yahooResponse
-        };
+            actual: yahooResponseParsed
+        });
+    } catch {
+        throw new Error("Error while contacting the Yahoo Developer Network.");
+    }
+}
 
-        response.appendHeader("Access-Control-Allow-Origin", "http://localhost:" + HostPortNumber);
-        response.end(JSON.stringify(respondingTicket));
+async function handleAuthenticationRequest(forRequest: RubifuriAuthentication_RequestObject): Promise<string> {
+    let draftString = "";
+
+    draftString = cookieHandler.stringifySetCookie({
+        name: forRequest.key,
+        value: forRequest.value,
+        httpOnly: true,
+        priority: "high",
+        sameSite: "lax",
+    });
+    
+    return draftString;
+}
+
+const endpoint = createServer((request, response) => {
+    let respondingTicket: RubifuriServerResponse = {
+        status: "success",
+        statusCode: 200,
+        for: "authentication",
+        output: {}
+    };
+
+    let body: string = "";
+    let bodyArray: Uint8Array[] = [];
+
+
+    request.on("data", chunk => {
+        bodyArray.push(chunk);
+    });
+    request.on('end', async () => {
+        try {
+            body = Buffer.concat(bodyArray).toString();
+            let parsedBody = JSON.parse(body) as RubifuriServerRequest;
+
+            let parsedCookies = cookieHandler.parse(request.headers.cookie ?? "");
+
+            switch (parsedBody.for) {
+                case "ping":
+                    respondingTicket.for = "ping";
+                    respondingTicket.output = ["pong"];
+
+                    response.appendHeader("Access-Control-Allow-Origin", "http://localhost:" + HostPortNumber);
+                    response.statusCode = 200;
+                    response.end(JSON.stringify(respondingTicket));
+
+                    break;
+                case "authentication":
+                    respondingTicket.for = "authentication";
+
+                    let authRequest = JSON.parse(parsedBody.input) as RubifuriAuthentication_RequestObject;
+                    if (authRequest.purpose === "check") {
+                        respondingTicket.output = {
+                            key: authRequest.key,
+                            valueIsSet: parsedCookies[authRequest.key] !== undefined && parsedCookies[authRequest.key] !== ""
+                        }
+                        
+                        response.appendHeader("Access-Control-Allow-Origin", "http://localhost:" + HostPortNumber);
+                        response.appendHeader("Access-Control-Allow-Credentials", "true");
+                        response.statusCode = 200;
+                        response.end(JSON.stringify(respondingTicket));
+                        return;
+                    }
+
+                    handleAuthenticationRequest(authRequest)
+                        .then((cookieString) => {
+                            respondingTicket.output = {};
+                            response.appendHeader("Access-Control-Allow-Origin", "http://localhost:" + HostPortNumber);
+                            response.appendHeader("Access-Control-Allow-Credentials", "true");
+                            response.appendHeader("Set-Cookie", cookieString);
+                            response.statusCode = 200;
+                            response.end(JSON.stringify(respondingTicket));
+                        })
+                        .catch((errorMessage) => {
+                            console.log("FailPoint 1B", errorMessage);
+                            response.appendHeader("Access-Control-Allow-Origin", "http://localhost:" + HostPortNumber);
+                            response.statusCode = 500;
+                            response.end(`${errorMessage}`);
+                        });
+
+                    break;
+                case "rubifuri":
+                    respondingTicket.for = "rubifuri";
+
+                    if (parsedCookies.yahoo_apiKey === undefined) {
+                        response.appendHeader("Access-Control-Allow-Origin", "http://localhost:" + HostPortNumber);
+                        response.statusCode = 403;
+                        response.end("[RubifuriServe] Request denied due to improper authorization levels.");
+                        return;
+                    }
+
+                    handleRubifuriRequest(parsedBody.input, parsedCookies.yahoo_apiKey ?? "")
+                        .then(furiganaResponse => {
+                            respondingTicket.output = furiganaResponse;
+                            response.appendHeader("Access-Control-Allow-Origin", "http://localhost:" + HostPortNumber);
+                            response.statusCode = 200;
+                            response.end(JSON.stringify(respondingTicket));
+                        })
+                        .catch(errorMessage => {
+                            console.log("FailPoint 1C", errorMessage);
+                            response.appendHeader("Access-Control-Allow-Origin", "http://localhost:" + HostPortNumber);
+                            response.statusCode = 500;
+                            response.end(`${errorMessage}`);
+                        });
+                    break;
+            }
+        } catch (errorMessage) {
+            console.log("FailPoint 1A", errorMessage);
+            response.appendHeader("Access-Control-Allow-Origin", "http://localhost:" + HostPortNumber);
+            response.statusCode = 500;
+            response.end(`${errorMessage}`);
+        }
     });
     
     request.on('error', err => {
-        errorify();
+        response.appendHeader("Access-Control-Allow-Origin", "http://localhost:" + HostPortNumber);
+        response.statusCode = 500;
+        response.statusMessage = "An error occurred with the backend.";
         return;
     });
 })
 
-startingPoint.listen(HandlerPortNumber);
+endpoint.listen(BackendPortNumber);
