@@ -1,13 +1,15 @@
-// settings.tsx
+// page.tsx
 //
 // Copyright (C) 2026 cocoazawa
 
+"use client"
+
 import { useEffect, useRef, useState } from "react";
 import { Ban, CheckCheck, CircleSlash, Server, ServerCrash, Settings } from "lucide-react";
-import { RubifuriConfiguration } from "./definitions";
-import { checkConfigurationValues, makeConfigurationChange, pingServer } from "./utilities";
+import { RubifuriConfiguration } from "@/app/definitions";
+import { checkConfigurationValues, makeConfigurationChange, pingServer } from "@/app/utilities";
 
-export function RubifuriSettingsPanel() {
+export default function RubifuriSettingsPanel() {
     let [configuration, setConfiguration] = useState<RubifuriConfiguration>({
         name: "",
         language: "en",

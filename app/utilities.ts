@@ -161,3 +161,25 @@ export async function getBackgroundThroughBackend(): Promise<string> {
     localStorage.setItem("images.pictureOfTheDay", unsplashResponseParsed.output);
     return unsplashResponseParsed.output;
 }
+
+
+export async function convertToFurigana(requestingSentence: string): Promise<RubifuriServerResponse> {
+    console.log("Making a request through the Yahoo!デベロッパーネットワーク credentials provided...");
+
+    // The requestingDocument is required to be passed over to the internally run server if anything is going to work.
+    // It contains the sentence (in Kanji) to ルビ振り, a uuid to identify this request (although we could probably do without one)
+    // and the most important API Key.
+    let requestingDocument: RubifuriServerRequest = {
+        for: "rubifuri",
+        input: requestingSentence
+    }
+
+    
+    const furiganaRequest = await fetch("http://localhost:62263", {
+        method: "POST",
+        body: JSON.stringify(requestingDocument),
+        credentials: "include",
+    })
+    const furiganaRequestParsed = await furiganaRequest.json();
+    return furiganaRequestParsed;
+}

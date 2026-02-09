@@ -1,10 +1,12 @@
-// information.tsx
+// page.tsx
 //
 // Copyright (C) 2026 cocoazawa
 
+"use client"
+
 import { BookA, ImageDown, Server, ServerCrash } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { getBackgroundThroughBackend, pingServer } from "./utilities";
+import { getBackgroundThroughBackend, pingServer } from "@/app/utilities";
 
 
 export function GitHubLogo({height}: {height: number}) {
@@ -26,7 +28,7 @@ export function GitHubLogo({height}: {height: number}) {
             </svg>)
 }
 
-export function RubifuriInformationPanel() {
+export default function RubifuriInformationPanel() {
     let [serverState, setServerState] = useState<boolean | undefined>(undefined);
 
     let [imageSrc, setImageSrc] = useState<string | undefined>(undefined);
