@@ -43,5 +43,7 @@ next-env.d.ts
 
 backend/main.js
 main.js
+backend/images.js
+images.js
 backend/definitions.js
 definitions.js

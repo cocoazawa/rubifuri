@@ -2,102 +2,10 @@
 //
 // Copyright (C) 2026 cocoazawa
 
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
-import { isLocalStorageAvailable, pingServer, RubifuriConfiguration } from "./definitions";
+import { useEffect, useRef, useState } from "react";
 import { Ban, CheckCheck, CircleSlash, Server, ServerCrash, Settings } from "lucide-react";
-import { RubifuriAuthentication_CheckResponseObject, RubifuriServerRequest, RubifuriServerResponse } from "@/backend/definitions";
-
-async function makeConfigurationChange(attribute: "yahoo_apiKey" | "unsplash_apiKey" | "name" | "language", value: string | "en" | "jp"): Promise<void> {
-    if (!isLocalStorageAvailable()) { throw new Error("[Rubifuri] LocalStorage isn't available."); }
-    if ((value !== "en" && value !== "jp") && attribute === "language") { throw new Error("[Rubifuri] Language can not be set to that language."); }
-
-    if (attribute === "language" || attribute === "name") {
-        switch (attribute) {
-            case "name":
-                localStorage.setItem("config.name", value);
-                break;
-            case "language":
-                localStorage.setItem("config.language", value);
-                break;
-        }
-        return;
-    }
-
-    let requestingDocument: RubifuriServerRequest = {
-        for: "authentication",
-        input: JSON.stringify({
-            purpose: "set",
-            key: attribute,
-            value: value
-        })
-    }
-
-    fetch("http://localhost:62263", {
-        method: "POST",
-        body: JSON.stringify(requestingDocument),
-        credentials: "include"
-    })
-    .then((response) => {
-        return (response.json());
-    })
-    .then((secondaryResponse) => {
-        console.log(secondaryResponse);
-        return;
-    })
-    .catch((error) => {
-        throw error;
-    });
-}
-
-async function checkConfigurationValues(): Promise<RubifuriConfiguration> {
-    let configuration: RubifuriConfiguration = {
-        name: localStorage.getItem("config.name") ?? "",
-        language: "en",
-        yahoo_apiKey: false,
-        unsplash_apiKey: false
-    };
-
-    configuration.language = localStorage.getItem("config.language") === "en" ? "en" : localStorage.getItem("config.language") === "jp" ? "jp" : "en";
-
-    let requestingDocumentYahoo: RubifuriServerRequest = {
-        for: "authentication",
-        input: JSON.stringify({
-            purpose: "check",
-            key: "yahoo_apiKey",
-            value: ""
-        })
-    }
-    let requestingDocumentUnsplash: RubifuriServerRequest = {
-        for: "authentication",
-        input: JSON.stringify({
-            purpose: "check",
-            key: "unsplash_apiKey",
-            value: ""
-        })
-    }
-
-    const yahooResponse = await fetch("http://localhost:62263", {
-        method: "POST",
-        body: JSON.stringify(requestingDocumentYahoo),
-        credentials: "include"
-    })
-    const yahooResponseParsed: RubifuriServerResponse = await yahooResponse.json() as RubifuriServerResponse;
-    const yahooValueIsSet = (yahooResponseParsed.output as RubifuriAuthentication_CheckResponseObject).valueIsSet;
-    console.log(yahooResponseParsed);
-    configuration.yahoo_apiKey = yahooValueIsSet;
-
-    const unsplashResponse = await fetch("http://localhost:62263", {
-        method: "POST",
-        body: JSON.stringify(requestingDocumentUnsplash),
-        credentials: "include"
-    });
-    const unsplashResponseParsed: RubifuriServerResponse = await unsplashResponse.json() as RubifuriServerResponse;
-    console.log(unsplashResponseParsed);
-    const unsplashValueIsSet = (unsplashResponseParsed.output as RubifuriAuthentication_CheckResponseObject).valueIsSet;
-    configuration.unsplash_apiKey = unsplashValueIsSet;
-
-    return configuration;
-}
+import { RubifuriConfiguration } from "./definitions";
+import { checkConfigurationValues, makeConfigurationChange, pingServer } from "./utilities";
 
 export function RubifuriSettingsPanel() {
     let [configuration, setConfiguration] = useState<RubifuriConfiguration>({
@@ -128,7 +36,6 @@ export function RubifuriSettingsPanel() {
     useEffect(() => {
         if (runOnce.current === true) { return; }
         runOnce.current = true;
-        console.log("Running...");
         
         pingServer(setServerState);
         setInterval(() => {
@@ -165,11 +72,13 @@ export function RubifuriSettingsPanel() {
             </div>
 
             {configurationLoaded ? <>
-                <div className="notice" style={{borderLeftColor: "var(--fawn)"}}>
-                    <p><b>Security and Backends</b></p>
-                    <p>You might have noticed that when you run <code>npm run view</code>, the code spins up a backend. This backend allows for secure storage of your secrets on-device. Please be aware that <i>once you enter the secret, you will not be able to view it using this page again.</i></p>
+                <div className="notice" style={{borderLeftColor: "var(--red)"}}>
+                    <h2>Important Notice</h2>
+                    <p><em><b><i>Please be aware that, once you enter the secret, you will not be able to view it using this page again.</i></b></em></p>
+                    <p>You might have noticed that when you run <code>npm run view</code>, the code spins up a backend. This backend allows for secure storage of your secrets on-device in a way that persists through sessions so that you don't have to reenter it every time.</p>
                 </div>
 
+                <h2>Change Secrets</h2>
 
                 <p><b>Yahoo!デベロッパーネットワーク Client ID</b></p>
                 <p>The Client ID will be used for making server-to-server requests to Yahoo!'s ルビ振り API. If not supplied, the local server will refuse to make any requests and the interface will return an error suggesting that you supply a valid Client ID.</p>

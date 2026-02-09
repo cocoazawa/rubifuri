@@ -2,9 +2,9 @@
 //
 // Copyright (C) 2026 cocoazawa
 
-import { BookA, Server, ServerCrash } from "lucide-react";
+import { BookA, ImageDown, Server, ServerCrash } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { pingServer } from "./definitions";
+import { getBackgroundThroughBackend, pingServer } from "./utilities";
 
 
 export function GitHubLogo({height}: {height: number}) {
@@ -29,13 +29,23 @@ export function GitHubLogo({height}: {height: number}) {
 export function RubifuriInformationPanel() {
     let [serverState, setServerState] = useState<boolean | undefined>(undefined);
 
+    let [imageSrc, setImageSrc] = useState<string | undefined>(undefined);
+    let imageRef = useRef<HTMLImageElement>(null);
+
     let runOnce = useRef<boolean>(false);
 
     useEffect(() => {
+        if (runOnce.current === true || imageRef.current === null) { return; }
+        runOnce.current = true;
+
         pingServer(setServerState);
         setInterval(() => {
             pingServer(setServerState);
         }, 2000);
+
+        imageRef.current.addEventListener("load", (event) => {
+            imageRef.current!.classList.add("loaded");
+        })
     }, [])
 
     return (<>
@@ -58,6 +68,13 @@ export function RubifuriInformationPanel() {
             <a className="githubRefer" href="https://github.com/cocoazawa" target="_blank" rel="noopener noreferrer"><p>View this project on&nbsp;</p><GitHubLogo height={16} /><p>.</p></a>
             <p>Copyright (C) 2026 cocoazawa</p>
 
+            <button onClick={(event) => {
+                getBackgroundThroughBackend()
+                .then((value) => {
+                    setImageSrc(value);
+                })
+            }}><ImageDown height={14} strokeWidth={2.25} />&nbsp;Test Upcoming Image Functionality</button>
+
             <h2>External Service Usage Credits</h2>
             <p>These projects or services are integral to making this website work.</p>
             <span style={{ margin: "15px 15px 15px 15px" }}><a href="https://developer.yahoo.co.jp/sitemap/">Web Services by Yahoo! JAPAN</a></span>
@@ -69,5 +86,6 @@ export function RubifuriInformationPanel() {
             <p>We are not affiliated, associated, authorized, endorsed by, or in any way officially connected with GitHub, Inc., or any of its subsidiaries or its affiliates. The official GitHub website can be found at [https://github.com/].</p>
             <p>GITHUB®, the GITHUB® logo design, the INVERTOCAT logo design, OCTOCAT®, and the OCTOCAT® logo design are trademarks of GitHub, Inc., registered in the United States and other countries.</p>
         </div>
+        <img ref={imageRef} src={imageSrc} className="background"></img>
     </>)
 }

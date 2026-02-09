@@ -64,6 +64,31 @@ async function handleRubifuriRequest(forString: string, withKey: string): Promis
     }
 }
 
+async function handleImageRequest(withKey: string): Promise<string> {
+    const requestEndpoint = "https://api.unsplash.com/search/photos?page=1&per_page=1&query=japan%20landscape";
+
+    const headers = new Headers();
+    headers.set("Content-Type", "application/json");
+    headers.set("Origin", "http://localhost:62263");
+    headers.set("User-Agent", "RubifuriAgent v0.2");
+    headers.set("User-Agent", "RubifuriAgent v0.2");
+    headers.set("Authorization", "Client-ID " + withKey);
+    
+    try {
+        let unsplashOfficialResponse: Response = await fetch(requestEndpoint, {
+            headers: headers,
+            method: "GET"
+        });
+
+        let unsplashResponseParsed = await unsplashOfficialResponse.json();
+        
+        if (unsplashResponseParsed.results[0].urls.raw === undefined || unsplashResponseParsed.results[0].urls.raw === null) { throw new Error("Unsplash response format deviates from nominal format."); }
+        return(unsplashResponseParsed.results[0].urls.raw);
+    } catch {
+        throw new Error("Error while contacting Unsplash.");
+    }
+}
+
 async function handleAuthenticationRequest(forRequest: RubifuriAuthentication_RequestObject): Promise<string> {
     let draftString = "";
 
@@ -119,7 +144,7 @@ const endpoint = createServer((request, response) => {
                             key: authRequest.key,
                             valueIsSet: parsedCookies[authRequest.key] !== undefined && parsedCookies[authRequest.key] !== ""
                         }
-                        
+
                         response.appendHeader("Access-Control-Allow-Origin", "http://localhost:" + HostPortNumber);
                         response.appendHeader("Access-Control-Allow-Credentials", "true");
                         response.statusCode = 200;
@@ -154,7 +179,7 @@ const endpoint = createServer((request, response) => {
                         return;
                     }
 
-                    handleRubifuriRequest(parsedBody.input, parsedCookies.yahoo_apiKey ?? "")
+                    handleRubifuriRequest(parsedBody.input, parsedCookies.yahoo_apiKey)
                         .then(furiganaResponse => {
                             respondingTicket.output = furiganaResponse;
                             response.appendHeader("Access-Control-Allow-Origin", "http://localhost:" + HostPortNumber);
@@ -168,7 +193,39 @@ const endpoint = createServer((request, response) => {
                             response.statusCode = 500;
                             response.end(`${errorMessage}`);
                         });
+
                     break;
+                case "unsplash":
+                    respondingTicket.for = "unsplash";
+
+                    if (parsedCookies.unsplash_apiKey === undefined) {
+                        response.appendHeader("Access-Control-Allow-Origin", "http://localhost:" + HostPortNumber);
+                        response.statusCode = 403;
+                        response.end("[RubifuriServe] Request denied due to improper authorization levels.");
+                        return;
+                    }
+
+                    handleImageRequest(parsedCookies.unsplash_apiKey)
+                        .then(unsplashResponse => {
+                            respondingTicket.output = unsplashResponse;
+                            response.appendHeader("Access-Control-Allow-Origin", "http://localhost:" + HostPortNumber);
+                            response.appendHeader("Access-Control-Allow-Credentials", "true");
+                            response.statusCode = 200;
+                            response.end(JSON.stringify(respondingTicket));
+                        })
+                        .catch(errorMessage => {
+                            console.log("FailPoint 1C", errorMessage);
+                            response.appendHeader("Access-Control-Allow-Origin", "http://localhost:" + HostPortNumber);
+                            response.statusCode = 500;
+                            response.end(`${errorMessage}`);
+                        });
+
+                    break;
+                default:
+                    console.log("FailPoint 2A");
+                    response.appendHeader("Access-Control-Allow-Origin", "http://localhost:" + HostPortNumber);
+                    response.statusCode = 404;
+                    response.end(`[RubifuriServe] That endpoint does not exist.`);
             }
         } catch (errorMessage) {
             console.log("FailPoint 1A", errorMessage);
